@@ -6,7 +6,7 @@
 // 'starter.controllers' is found in controllers.js
 //value可与你修改，constant不能修改。 value不能在provider内访问，constant可以
 angular.module('server', ['ionic', 'server.controllers'])
-.constant('CONFIG', {'url':'http://192.168.1.100:3002/superadmin/','info':{},'header':{}})
+.constant('CONFIG', {'url':'http://service520.com:3002/superadmin/','info':{},'header':{}})
 .run(function($ionicPlatform,$rootScope,CONFIG,$location) {
     $rootScope.$on('$locationChangeStart', function() {
             //console.log("$locationChangeStart", arguments);
