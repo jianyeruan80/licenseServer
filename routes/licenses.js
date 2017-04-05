@@ -10,6 +10,7 @@ var express = require('express'),
 
 
 router.get('/', function(req, res, next) {
+   console.log("========================");
      log.debug(req.token);
 
      licensesDao.aggregate([
@@ -31,12 +32,17 @@ router.get('/', function(req, res, next) {
 
 router.put('/active/:licensesKey', function(req, res, next) {
          var inof=req.body;
+      console.log("=============="); 
+       console.log(req.params.licensesKey);
+    console.log("===============");
          var query={
               "licenseKey":req.params.licensesKey
 
          }
           try{
-            var key=licenses.decryptLicense(req.params.licensesKey);  
+           console.log(req.params.licensesKey);
+            var key=licenses.decryptLicense(req.params.licensesKey); 
+          console.log(key); 
              if(key.active){
                  return next({"code":"90008"})
              }
