@@ -1,5 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    tools = require('../modules/tools');
 var lauguagesSchema = new Schema({
 	"second":String,
 	"third":String
@@ -13,7 +14,7 @@ var addressSchema = new Schema({
       language:{
          description:lauguagesSchema
     },
-   location: {
+    location: {
     type:{type:String,default:'Point'},
     coordinates: [Number],
     
@@ -24,9 +25,14 @@ var distanceFeeSchema = new mongoose.Schema({
   distance:String,
   fee:Number
 })
+licenseKeyFeeSchema = new mongoose.Schema({ 
+  pcKey:String,
+  value:String
+})
 var storesSchema = new mongoose.Schema({ 
-    merchantId:{type:String,uppercase: true, trim: true},
+    merchantId:{type:String,lowercase: true, trim: true},
     name:String,
+    contact:String,
     addressInfo:addressSchema,
     phoneNum1:String,
     phoneNum2:String,
@@ -35,11 +41,11 @@ var storesSchema = new mongoose.Schema({
     password:String,
     tax:Number,
     about :String,
-    createdAt: {type:Date,default:Date.now},
+    createdAt: {type:Date,default:tools.defaultDate},
     updatedAt: Date,
-    picture:String,
+    logo:String,
     fax:String,
-    licenseKey:String,
+    licenseKey:[licenseKeyFeeSchema],
     openTime:String,
     orderTime:String,
     qrcUrl:{type:String,lowercase:true},
@@ -49,21 +55,23 @@ var storesSchema = new mongoose.Schema({
     maxDistance:Number,
     DiffTimes:{type:Number,default:0},
     distanceFee:[distanceFeeSchema],
-    
+    expires:Date,
+    reportStartTime:Date,
+    reportEndTime:Date,
+    status:{type:String,default:"true"},
     language:{
          name:lauguagesSchema,
          description:lauguagesSchema
     },
+    zoneInfo:{type:Number,default:0},
+    chains:String,
     operator:{
   id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
-  user:String
+  user:String,
+
 },
 });
-storesSchema.index({ merchantId: 1},{unique: true,sparse:true });
-//storesSchema.index({ qrcUrl: 1},{unique: true,sparse:true });
-addressSchema.index({location: '2dsphere'});
+storesSchema.index({qrcUrl:1},{unique: true,sparse:true });
+storesSchema.index({merchantId:1},{unique: true,sparse:true });
 module.exports = mongoose.model('stores', storesSchema);
 
-/*{ createdAt: { type: Date, expires: 3600, default: Date.now }}
-OrderList.$.UserName","大叔2015-09-21
-*/

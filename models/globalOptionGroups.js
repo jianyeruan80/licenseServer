@@ -19,15 +19,17 @@ var globalOptionsSchema = new mongoose.Schema({
 
 
 var globalOptionGroupsSchema = new mongoose.Schema({ 
-    merchantId:{type:String,upperase: true, trim: true},
+    merchantId:{type:String,lowercase: true, trim: true},
     group:{type: "String",default:"Default"},
     description:String,
     minimun:{type:Number,default:0},
     maximun:{type:Number,default:0},
     order:{type:Number,default:1},
     picture:String,
-   operator:{
-    id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
+    unit:{type: String, enum: ['Case', 'LB', 'Bottle','Piece','Gram', 'Liter'],default:'Case'},
+    compositions:[{inventoryItem:{type: mongoose.Schema.Types.ObjectId, ref: 'inventoryItems'},qty:Number}],
+    operator:{
+     id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
     user:String
 },
     options:[globalOptionsSchema],

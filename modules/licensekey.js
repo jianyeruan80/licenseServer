@@ -120,3 +120,5 @@ var crypted = encrypt(key, iv, data);
 console.log("数据加密后:", crypted);
 var dec = decrypt(key, iv, crypted);
 console.log("数据解密后:", dec);
+/*+30*24*60*60*1000*/
+console.log(Date.now()+30*24*60*60*1000);

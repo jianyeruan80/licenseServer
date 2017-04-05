@@ -3,11 +3,11 @@ var express = require('express'),
     router = express.Router(),
     log = require('../modules/logs'),
     security = require('../modules/security'),
+     tools = require('../modules/tools'),
     storehours = require('../models/storehours');
     
 router.get('/merchants/id', security.ensureAuthorized, function(req, res, next) {
-     
-var query={};
+     var query={};
        query.merchantId=req.token.merchantId;
        /*
        storehours.aggregate[]({}, function (err, data) {
@@ -28,12 +28,45 @@ var query={};
         ]
         ).sort({"order" : 1}).exec(function(err,data){
             if (err) return next(err);
-            console.log("xxxxxxxxxxxxxxxxxx");
-             console.log(data);
             res.json(data);
         })
      
 });
+
+
+router.post('/merchants/id', function(req, res, next) {
+     var returnData={
+	"Mon":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+        "Tue":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+       "Web":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+      "Thu":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+      "Fri":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+     "Sat":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"],
+     "Sun":["2017-01-01T00:00:00.000Z","2017-01-01T23:59:59.999Z"]
+        }
+     var query={};
+       query.merchantId="taer";//req.token.merchantId;
+       storehours.aggregate(
+           [ {$match:query},
+             {
+		$unwind:"$date"
+             }
+             
+        ]
+        ).sort({"order" : 1}).exec(function(err,data){
+            if (err) return next(err);
+	      data.forEach(function(v,k){
+                              returnData[v.date]=[];
+                               returnData[v.date][0]=v.fromTime;
+			   returnData[v.date][1]=v.toTime;
+            	             
+			})            
+            res.json(returnData);
+        })
+
+});
+
+
 
 /* year: { $year: "$date" },
            month: { $month: "$date" },
@@ -73,7 +106,7 @@ router.put('/:id',  security.ensureAuthorized,function(req, res, next) {
 var info=req.body;
 
 var id=req.params.id;
-info.updatedAt=new Date();
+info.updatedAt=tools.defaultDate();
 info.operator={};
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;

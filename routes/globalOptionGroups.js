@@ -3,6 +3,7 @@ var express = require('express'),
     router = express.Router(),
     log = require('../modules/logs'),
     security = require('../modules/security'),
+     tools = require('../modules/tools'),
     optionGroups = require('../models/globalOptionGroups');
     
 router.get('/', function(req, res, next) {
@@ -50,7 +51,7 @@ var info=req.body;
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;
 var id=req.params.id;
-info.updatedAt=new Date();
+info.updatedAt=tools.defaultDate();
 var query = {"_id": id};
 var options = {new: true};
  optionGroups.findOneAndUpdate(query,info,options,function (err, data) {

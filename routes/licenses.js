@@ -3,220 +3,190 @@ var express = require('express'),
     router = express.Router(),
     log = require('../modules/logs'),
     security = require('../modules/security'),
-    tools = require('../modules/tools'),
-    licenses = require('../modules/licenses'),
-    licensesHistorys = require('../models/licenseshistorys'),
-    licensesDao = require('../models/licenses');
-
-
-router.get('/', function(req, res, next) {
-   console.log("========================");
+    stores = require('../models/stores'),
+     tools = require('../modules/tools'),
+     licenses = require('../models/licenses'),
+      merchants = require('../models/merchants'),
+     licensesTool = require('../modules/licenses');
+     router.get('/', function(req, res, next) {
      log.debug(req.token);
-
-     licensesDao.aggregate([
-    {
-      $lookup:
-        {
-          from: "licenseshistorys",
-          localField: "_id",
-          foreignField: "license",
-          as: "licensesHistorys"
-        }
-   }
-]).exec(function (err, data) {
+       stores.findOne({}).sort({"_id":-1}).exec(function (err, data) {
         if (err) return next(err);
           res.json(data);
-      });
-     
+      })
 });
-
-router.put('/active/:licensesKey', function(req, res, next) {
-         var inof=req.body;
-      console.log("=============="); 
-       console.log(req.params.licensesKey);
-    console.log("===============");
-         var query={
-              "licenseKey":req.params.licensesKey
-
-         }
-          try{
-           console.log(req.params.licensesKey);
-            var key=licenses.decryptLicense(req.params.licensesKey); 
-          console.log(key); 
-             if(key.active){
-                 return next({"code":"90008"})
-             }
-          }catch(ex){
-            return next({"code":"90007"});
-          }
-          licensesDao.findOne(query, function (err, data) {
-                  if (err) return next(err);
-                  if(!data){
-                      return next({"code":"90009"})
-                  }else{
-                       var currentDate=new Date();
-                       data.startDate=new Date();
-                       data.expires=currentDate.setMonth(currentDate.getMonth() + data.month);
-                       query={};
-                       query.month=data.month;
-                       query.merchantId=data.merchantId;
-                       query.expires=data.expires;
-                       query.active=true;
-                       data.licenseKey=licenses.createLicense(query);
-                       data.active=true;
-                       data.save(function (err, data2) {
-                          if (err) return next(err);
-                             var historyJson={};
-                            historyJson.month=data2.month;
-                            historyJson.startDate=data2.startDate,
-                            historyJson.expires=data2.expires,
-                            historyJson.license=data2._id;
-                             var history=new licensesHistorys(historyJson);
-                             history.save(function (err, data3) {
-                                      if (err) return next(err);
-                                          res.json(data2)
-                                     })
-                         })
-
-                 } 
-         })
-})
-router.put('/customerinfo/:id', function(req, res, next) {
-         var info=req.body;
-         var update={};
-             update.email=info.email;
-             update.phone=info.phone;
-             update.contact=info.contact;
-             update.addressInfo=info.addressInfo;
-
-      
-        var query={"_id":req.params.id};
-         licensesDao.findOneAndUpdate(query,update,{"new":true},function (err, data) {
-          if (err) return next(err);
-           
-            res.json(data);
-
-        });
-        
-})
-router.put('/merchant/:id', function(req, res, next) {
-         var info=req.body;
-         var merchantId=req.params.id;
-         var licenseInfo={
-              "merchantId":merchantId,
-              "active":false,
-              "date":new Date().getTime()
-              
-         }
-
-         var update={
-                "merchantId":merchantId,
-                "active":false,
-                "expires":null,
-                "startDate":null,
-                "month":info.month,
-                "licenseKey":licenses.createLicense(licenseInfo)
-               
-         }
-
-        var query={"merchantId":req.params.id};
-         licensesDao.findOneAndUpdate(query,update,{"new":true},function (err, data) {
-          if (err) return next(err);
-           
-            res.json(data);
-
-        });
-        
-})
-router.put('/:id',  security.ensureAuthorized,function(req, res, next) {
-   var info=req.body;
-   var query={"_id":req.params.id};
-    var update={};
-             update.email=info.email;
-             update.phone=info.phone;
-             update.contact=info.contact;
-             update.addressInfo=info.addressInfo;
-  licensesDao.findOneAndUpdate(query,update,{"new":true},function (err, data) {
-          if (err) return next(err);
-           
-            res.json(data);
-
-        });
-})
-router.post('/',  security.ensureAuthorized,function(req, res, next) {
-      var info=req.body;
-      var createLicense=[];
-      var licenseInfo={"date":new Date().getTime()};
-      var total=info.total || 1;
-      var count=0;
-       licensesDao.find({}, function (err, data) {
-         if (err) return next(err);
-            var key="";
-            var keys=[];
-            for(var i=0;i<data.length;i++){
-                keys.push(data[i].merchantId);
-            }
-            try{
-              key=keys.join(",");
-            }catch(ex){}
-                for(var i=0;i<10000;i++){
-                  var merchant=getMerchant();
+router.post('/licensesQuery',security.ensureAuthorized,function(req,res,next){
+       licenses.find({}).sort( { "merchantId": -1 } ).exec(function(err,data){
+              if (err) return next(err);
+              res.json(data);
                     
-                   for(var j=1;j<merchant.length;j++){
-                         licenseInfo.active=false;
-                         var updateInfo={};
-                         if(!key || key.indexOf(merchant[j])==-1){
-                            count++;
-                            licenseInfo.merchantId=merchant[j];
-                            updateInfo.licenseKey=licenses.createLicense(licenseInfo);
-          
-
-                            updateInfo.merchantId=licenseInfo.merchantId;
-                            updateInfo.month=info.month;
-                            updateInfo.operator={};
-                            updateInfo.operator.id=req.token.id;
-                            updateInfo.operator.user=req.token.user;
-                            createLicense.push(updateInfo);
-                        }
-                       
-                        if(count >= total){
-                              break;
-                            }
-                   }
-                   if(count >= total){
-                              break;
-                   }
-
-                }
-                licensesDao.create(createLicense, function (err, data) {
-                       if (err) return next(err);
-                         console.log(data);
-                         res.json(data);
-                  })
-                  
-
-
-      });
+        })
+})     
+router.post('/createLicensekey',security.ensureAuthorized,function(req,res,next){
      
+       var info=req.body;
+       var query={"pcKey":info.pcKey};
+           info.createdAt=Date.now();       
+var p1=tools.getNextSequence({});
+ p1.then(function(n){
+  info.merchantId=n.seqNo;
+ info.licenseSub["merchantId"]=n.seqNo;
+ info.licenseSub["storeName"]=info.storeName || "";
+ info.licenseSub["createdAt"]=Date.now();
+
+ info.licenseSub["key"]=licensesTool.createLicense(info.licenseSub);
+ info.licenseSub["contact"]=info.contact || "";
+ info.licenseSub["phone"]=info.phone || "";
+ info.licenseSub["email"]=info.email || "";
+ info.licenseSub["operator"]={
+                id:req.token.id,
+                user:req.token.user
+          }
+ info["newKey"]=info.licenseSub["key"];
+                 info.licenseKey=[info.licenseSub]; 
+                  var dao = new licenses(info);
+                     dao.save(function (err, data) {
+                     if (err) return next(err);
+                       merchants.update({},{"seq":n.seqNo},function (err, data) {
+                          if (err)  console.log(err);
+                              //  process.exit();
+                          });
+                          res.json(data);
+                    });
+}, function(n) {
+  res.json({"code":"90005"});
 });
+})
+router.put('/createLicensekey/:id',security.ensureAuthorized,function(req,res,next){
+ var info=req.body;
+ var query={"pcKey":info.pcKey};
+ info.merchantId=info.licenseSub["merchantId"];
+ info.licenseSub["storeName"]=info.storeName || "";
+ info.licenseSub["createdAt"]=Date.now();
+ info.licenseSub["key"]=licensesTool.createLicense(info.licenseSub);
 
-function getMerchant(){
-  var key=Math.random().toString(36).slice(2);
-   for(var i=0;i<1;i++){
-    key+=Math.random().toString(36).slice(2);
-   }
+ info["newKey"]=info.licenseSub["key"];
+ info.licenseSub["contact"]=info.contact || "";
+ info.licenseSub["phone"]=info.phone || "";
+ info.licenseSub["email"]=info.email || "";
 
-   return tools.unique(toSplit(key,4).split(","));
+         info.licenseSub["operator"]={
+                id:req.token.id,
+                user:req.token.user
+ }
+ licenses.findById(req.params.id,function (err, data) {
+       if (err) return next(err);
+       if(!data)return next({"code":"910000"});
+          data.licenseKey.push(info.licenseSub);
+          info.licenseKey=data.licenseKey;
+          info.licenseKey.sort(function(a, b) {
+            return a.pcKey > b.pcKey;
+          });
+          licenses.findByIdAndUpdate(req.params.id,info,{new:true},function (err, data) {
+            if (err) return next(err);
+               res.json(data);
+             })   
+
+  })
+  })
+
+router.post('/active',  function(req, res, next) {
+  var info=req.body;
+  var newInfo=licensesTool.decryptLicense(info.key);
+  if(newInfo.message){
+    return next(newInfo); 
+   }else{
+    console.log(newInfo)
+     licenses.findOne({licenseKey: { $elemMatch: { key: info.key, activeKey:{$exists:false}} } }, function (err, data) {
+     var returnData=JSON.parse(JSON.stringify(data));
+     if (err) return next(err);
+     if(!returnData){
+      return next({"code":"90012"});
+     }
+      var currentDate=Date.now();
+      newInfo=JSON.parse(newInfo);
+      newInfo.startDate=Date.now();
+       newInfo.expires=currentDate+newInfo.month*(30+newInfo.delay)*24*60*60*1000;
+       var activeKey= licensesTool.createLicense(newInfo);
+        if(returnData.licenseKey.length>0){
+             for(var i=0;i<returnData.licenseKey.length;i++){
+               if(returnData.licenseKey[i].pcKey==newInfo.pcKey && returnData.licenseKey[i].status==true && !!returnData.licenseKey[i].expires){
+                    returnData.licenseKey[i].expires=+new Date(returnData.licenseKey[i].expires);
+                    if(currentDate < returnData.licenseKey[i].expires){
+                       currentDate=returnData.licenseKey[i].expires;
+
+                     }
+                      returnData.licenseKey[i].status=false;
+                     
+                  }
+             }
+              newInfo.expires=currentDate+newInfo.month*(30+newInfo.delay)*24*60*60*1000;
+              activeKey= licensesTool.createLicense(newInfo);
+              for(var i=0;i<returnData.licenseKey.length;i++){
+                
+                 if(returnData.licenseKey[i].key==info.key){
+                    returnData.licenseKey[i].activeKey=activeKey;
+                    returnData.licenseKey[i].startDate=newInfo.startDate;
+                    returnData.licenseKey[i].expires=newInfo.expires;
+                    returnData.licenseKey[i].status=true;
+                    returnData.merchantId=returnData.licenseKey[i].merchantId;
+                    break;
+                 }
+             }
+       
+       
+         }
+    
+     licenses.findByIdAndUpdate(data._id,returnData,{new:true},function (err, data) {
+          if (err) return next(err);
+              returnData={};
+              returnData.merchantId=data.merchantId;
+              returnData["licenseKey"]=[];
+              data.licenseKey.forEach(function(v,k){
+                if(v.status==true && !!v.activeKey){
+                  returnData["licenseKey"].push({key:v.pcKey,value:v.activeKey});
+                }
+              })
+           res.json(returnData);
+      })
+   })
 }
-function toSplit(num,len) {
-    var len=len || 3;
-    var num = num.toString(), result = '';
-    while (num.length > len) {
-        result = ',' + num.slice(-len) + result;
-        num = num.slice(0, num.length - len);
-    }
-    if (num) { result = num + result; }
-    return result;
-}
+})
 
 module.exports = router;
+
+/*
+var PersonSchema = new Schema({
+      name:{
+        first:String,
+        last:String
+      }
+    });
+  PersonSchema.virtual('name.full').get(function(){
+      return this.name.first + ' ' + this.name.last;
+    });
+
+Post.find({}).sort('test').exec(function(err, docs) { ... });
+Post.find({}).sort({test: 1}).exec(function(err, docs) { ... });
+Post.find({}, null, {sort: {date: 1}}, function(err, docs) { ... });
+Post.find({}, null, {sort: [['date', -1]]}, function(err, docs) { ... });
+
+db.inventory.aggregate( [ { $unwind: "$sizes" } ] )
+db.inventory.aggregate( [ { $unwind: { path: "$sizes", includeArrayIndex: "arrayIndex" } } ] )
+https://docs.mongodb.com/manual/reference/operator/aggregation/group/
+[
+   /*{ $project : { title : 1 , author : 1 } } addToSet*/
+/*    { $match: { status: "A" } },*
+ { $group : {_id : "$permission_group", perms:{$push:{"subject":"$subject","action":"$action","perm":"$perm","status":"$status","value":"$_id","key":"$perm"} } } }
+  // _id : { month: "$permission_group", day: { $dayOfMonth: "$date" }, year: { $year: "$date" } }
+
+  /*    {
+        $group : {
+          _id:{permissionGroup:"$permission_group",subjects:{$push:"$subject"}}
+         
+    sort({"order" : 1})
+        }
+      }*/
+/*users.update({"_id":key},{"$addToSet":{"permissions":{"$each":info.value}}},function(err,data){*/
+
+

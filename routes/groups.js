@@ -2,6 +2,7 @@
 var express = require('express'),
     router = express.Router(),
     log = require('../modules/logs'),
+     tools = require('../modules/tools'),
     security = require('../modules/security'),
     groups = require('../models/groups');
     
@@ -33,8 +34,10 @@ router.put('/sort',security.ensureAuthorized, function(req, res, next) {
      
 });
 router.get('/merchants/id', security.ensureAuthorized,function(req, res, next) {
-
-     var query={"merchantId":req.token.merchantId};
+     var info=req.params;
+      var query={"merchantId":req.token.merchantId};
+          query.type=info.type ||"Product";
+         
       groups.find(query).sort({order:1}).exec(function (err, data) {
         if (err) return next(err);
          res.json(data);
@@ -59,8 +62,8 @@ info.operator={};
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;
 
-   var arvind = new groups(info);
-   arvind.save(function (err, data) {
+   var dao = new groups(info);
+   dao.save(function (err, data) {
    if (err) return next(err);
           res.json(data);
       });
@@ -71,7 +74,7 @@ var info=req.body;
 info.operator={};
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;
-info.updatedAt=new Date();
+info.updatedAt=tools.defaultDate();
 var query = {"_id": req.params.id};
 var options = {new: true};
 

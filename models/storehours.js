@@ -1,10 +1,12 @@
-var mongoose = require('mongoose'),Schema = mongoose.Schema;
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    tools = require('../modules/tools');
 var lauguagesSchema = new Schema({
    "second":String,
 	"third":String
 })
 var storeHoursSchema = new Schema({
-	   merchantId:{type:String,uppercase: true, trim: true},
+	   merchantId:{type:String,lowercase: true, trim: true},
       name:String,
       fromTime:Date,
       toTime:Date,

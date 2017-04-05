@@ -1,5 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    tools = require('../modules/tools');
 var lauguagesSchema = new Schema({
 	"second":String,
 	"third":String
@@ -32,30 +33,29 @@ var optionsGroupsSchema = new mongoose.Schema({
     }
    
 });
-var groupsSchema = new mongoose.Schema({ 
+var categoriesSchema = new mongoose.Schema({
     merchantId:{type:String,lowercase: true, trim: true},
     name:{type:String},
-    description:String,
+    group:{ type: mongoose.Schema.Types.ObjectId, ref: 'groups',null: true },
     globalOptions:[{type: mongoose.Schema.Types.ObjectId,ref: 'globalOptionGroups'}],
     customerOptions:[optionsGroupsSchema],
+    description:String,
     status:{type:Boolean,default:true},
     order:{type:Number,default:1},
-    language:{
-         name:lauguagesSchema,
-         description:lauguagesSchema
-    },
     picture:{type:String},
-    categories:[{type: mongoose.Schema.Types.ObjectId, ref: 'categories'}],
-    type:{type: String, enum: ['Product','inventoryItems'],default:'Product'},
+    items:[{type: mongoose.Schema.Types.ObjectId, ref: 'items'}],
     operator:{
     id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
     user:String
 },
-   
+    language:{
+         name:lauguagesSchema,
+         description:lauguagesSchema
+    }
 });
-groupsSchema.index({ name: 1, merchantId: 1 }, { unique: true,sparse:true});
 
-module.exports = mongoose.model('groups', groupsSchema);
+categoriesSchema.index({ name: 1, merchantId: 1 ,group:1 }, { unique: true,sparse:true});
+module.exports = mongoose.model('categories', categoriesSchema);
 /*{ createdAt: { type: Date, expires: 3600, default: Date.now }}
 OrderList.$.UserName","大叔2015-09-21
 */

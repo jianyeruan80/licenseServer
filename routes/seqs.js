@@ -44,11 +44,14 @@ router.get('/merchantId', security.ensureAuthorized,function(req, res, next) {
               if(data.seqEnd>0 && data.seq>data.seqEnd){
                     data.seq=data.seqStart;
               }
- stores.findOneAndUpdate(query,data,options,function (err, data) {
+
+         stores.findOneAndUpdate(query,data,options,function (err, data) {
           if (err) return next(err);
             console.log(data);
           res.json(data);
          });
+              
+
               data.save(function (err, data2) {
               if (err) return next(err);
                res.json(data);

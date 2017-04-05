@@ -57,39 +57,9 @@ module.exports.ensureAuthorized=function(req, res, next) {
           return next({"code":"90001"}); 
     }
 }
-module.exports.unique5=function(array,key){
-  var r = [];
-  for(var i = 0, l = array.length; i < l; i++) {
-    for(var j = i + 1; j < l; j++)
-      if (array[i][key] === array[j][key])j = ++i;
-      r.push(array[i]);
-  }
-  return r;
-}
 
 
 
-cipher_seed = 'some_random_characters';
-var encrypt1 = function(text) {
-    var cipher  = crypto.createCipher('aes-256-cbc', cipher_seed),
-        crypted = cipher.update(text, 'utf8', 'hex');
-
-    crypted += cipher.final('hex');
-
-    return crypted;
-};
-
-var decrypt1 = function(text) {
-    var decipher  = crypto.createDecipher('aes-256-cbc', cipher_seed),
-        decrypted = decipher.update(text, 'hex', 'utf8');
-
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
-};
-
-module.exports.encrypt1 = encrypt1;
-module.exports.decrypt1 = decrypt1;
  //console.log("11");
  
  

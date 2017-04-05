@@ -32,10 +32,11 @@
   </div>
 
   <div class = "row item" ng-repeat="item in returnData.adminList" style="height:45px;position:relative">
-   <div class = "col-center" ng-click="getUser($index)" style="width:40%;overflow:hidden;">{{item.userName}}</div>
-   <div class = "col-center"  title="{{item.merchantIds}}" style="width:60%;overflow:hidden">&nbsp;&nbsp;{{item.merchantIds}}
+   <div class = "col-center" ng-click="getUser($index)">
+   {{item.userName}}&nbsp;|&nbsp;{{item.merchantId}}|&nbsp;{{item.users_doc.name}}&nbsp;{{item.users_doc.qrcUrl}}
+  
    
-    <label class="admin--label" style="position:absolute;right:-8px;top:-10px" ng-click="getUserPerm()">
+    <label class="admin--label" style="position:absolute;right:-8px;top:-10px;background:red;" ng-click="getUserPerm()">
         <input class="admin--radio" type="radio" name="admin-radio" ng-model="config.isChedkedAdmin" value="{{item._id}}">
         <span class="admin--radioInput"></span>
     </label>

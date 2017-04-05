@@ -2,8 +2,57 @@
 var express = require('express'),
     router = express.Router(),
     log = require('../modules/logs'),
+    tools = require('../modules/tools'),
+    async=require('async'),
+     util = require('util'),
     security = require('../modules/security'),
     customers = require('../models/customers');
+    router.post('/query',  security.ensureAuthorized,function(req, res, next) {
+       var info=req.body;
+       var search="";
+       var status=(!!info.searchData["status"]).toString();
+       if(!!info.searchData && !!info.searchData["searchInfo"]){
+           search=info.searchData["searchInfo"];
+       }
+      var query={$and:[{"merchantId":req.token.merchantId,"status":"true"}]};
+       if(status !="true")query={$and:[{"merchantId":req.token.merchantId,"status":{$ne:"true"}}]};
+       if(!!search)   {
+         query["$and"].push({
+              $or:[
+                      {"email":{$regex:search,$options: "i"}},//'email':new RegExp("^"+req.body.email+"$", 'i'),
+                      {"phoneNum1":{$regex:search,$options: "i"}},
+                       {"phoneNum2":{$regex:search,$options: "i"}},
+                      {"firstName":{$regex:search,$options: "i"}},
+                      {"lastName":{$regex:search,$options: "i"}},
+                ]  
+            })
+       }
+       async.parallel({
+       count: function (done) {
+         customers.count(query, function (err, data) {
+             if (err) return done(err,{});
+              done(null,data);
+         });
+       },
+       data: function (done) {
+         var currentPage=info.currentPage-1>0?info.currentPage-1:1;
+          customers.find(query).skip(info.pageOnCount*(info.currentPage-1)).limit(info.pageOnCount).exec(function (err, data) {
+             if (err) return done(err,{});
+             done(null,data);
+        });
+
+       }
+
+       }, function (err, result) {
+            if (err) return next(err);
+            var returnData={};
+             returnData.total=result.count;
+             returnData.data=result.data;
+             res.json(returnData);
+       })
+})
+   
+
     
 router.get('/', function(req, res, next) {
      log.debug(req.token);
@@ -14,9 +63,7 @@ router.get('/', function(req, res, next) {
      
 });
 router.get('/merchants/id', security.ensureAuthorized, function(req, res, next) {
-   console.log("xxxxxxxxxxxxxxxxxxxx");
-
-     var query={"merchantId":req.token.merchantId};
+     var query={"merchantId":req.token.merchantId,"status":"true"};
        customers.find(query, function (err, data) {
         if (err) return next(err);
           res.json(data);
@@ -28,10 +75,9 @@ router.get('/query',  security.ensureAuthorized,function(req, res, next) {
        
        var info=req.query;
        var search=info.search || "";
-
        var query={
            $and:[
-            {"merchantId":req.token.merchantId},
+            {"merchantId":req.token.merchantId,"status":"true"},
             {
               $or:[
                       {"email":{$regex:search,$options: "i"}},//'email':new RegExp("^"+req.body.email+"$", 'i'),
@@ -43,11 +89,7 @@ router.get('/query',  security.ensureAuthorized,function(req, res, next) {
             }
            ]
        }       
-
-       //var query={"merchantId":req.token.merchantId};   
-        //'email':new RegExp("^"+req.body.email+"$", 'i'),
-
-       customers.find(query, function (err, data) {
+customers.find(query, function (err, data) {
         if (err) return next(err);
          res.json(data);
       });
@@ -63,39 +105,42 @@ router.get('/:id', security.ensureAuthorized,function(req, res, next) {
 
 router.post('/',  security.ensureAuthorized,function(req, res, next) {
   var info=req.body;
-
-   
-   info.merchantId=req.token.merchantId; 
+      info.createdAt=tools.defaultDate(req.token.zoneInfo);
+      info.updatedAt=tools.defaultDate(req.token.zoneInfo);
+      info.merchantId=req.token.merchantId; 
       info.operator={};
-info.operator.id=req.token.id;
-info.operator.user=req.token.user;
-
-   var arvind = new customers(info);
-   arvind.save(function (err, data) {
+      info.operator.id=req.token.id;
+      info.operator.user=req.token.user;
+   var dao = new customers(info);
+   dao.save(function (err, data) {
    if (err) return next(err);
           res.json(data);
       });
 })
 router.put('/:id',  security.ensureAuthorized,function(req, res, next) {
 var info=req.body;
-log.debug(info);
-var id=req.params.id;
-info.updated_at=new Date();
-var query = {"_id": id};
+info.updatedAt=tools.defaultDate(req.token.zoneInfo);
 var options = {new: true};
-   info.operator={};
+info.operator={};
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;
- customers.findOneAndUpdate(query,info,options,function (err, data) {
+info.updatedAt=tools.defaultDate(req.token.zoneInfo);
+ customers.findByIdAndUpdate(req.params.id,info,options,function (err, data) {
           if (err) return next(err);
           res.json(data);
     });
 })
 router.delete('/:id', security.ensureAuthorized,function(req, res, next) {
-     customers.remove({"_id":req.params.id}, function (err, data) {
-        if (err) return next(err);
+var info=req.body;
+info.updatedAt=tools.defaultDate();
+info.operator={};
+info.operator.id=req.token.id;
+info.operator.user=req.token.user;
+info.status=new Date().getTime();
+ customers.findByIdAndUpdate(req.params.id,info,{new: true},function (err, data) {
+          if (err) return next(err);
           res.json(data);
-      });
+    });
 });
 
 module.exports = router;

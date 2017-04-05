@@ -1,8 +1,9 @@
 var security = require('./security');
-var jwt = require('jsonwebtoken');
 var crypto = require('crypto');
-var key="ezan7jl1306kj6ppieugwg66r";
- var encrypt = function(str) {
+var key = '7t1f621ea5c8f988';
+var iv = '2624b53cl4598718';
+/*var key="ezan7jl1306kj6ppieugwg66r";
+  var encrypt = function(str) {
   var iv = new Buffer('zeg7wyvbkxtg9zfr');
   var key = new Buffer('c95ad227894374034994e16262a1102b', 'hex');
   var cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
@@ -20,47 +21,27 @@ var iv = new Buffer('zeg7wyvbkxtg9zfr');
   var decryptedStr = decipher.update(new Buffer(str, 'base64'), 'binary', 'utf8');
   decryptedStr += decipher.final('utf8');
   return decryptedStr;
+};*/
+var encrypt = function (data) {
+   console.log(data);
+    var cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
+    var crypted = cipher.update(data, 'utf8', 'binary');
+    crypted += cipher.final('binary');
+    crypted = new Buffer(crypted, 'binary').toString('base64');
+    return crypted;
 };
+var decrypt = function (crypted) {
+    crypted = new Buffer(crypted, 'base64').toString('binary');
+    var decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    var decoded = decipher.update(crypted, 'binary', 'utf8');
+    decoded += decipher.final('utf8');
+    return decoded;
+};
+
 module.exports.createLicense=function(info) {
-          console.log("-----------------------------------------");
-           console.log(info);
-           var kk=encrypt(JSON.stringify(info));
-           console.log(kk);
-console.log("-----------------------------------------");
-       return kk;
+      
+return encrypt(JSON.stringify(info));
  }
  module.exports.decryptLicense=function(licenseKey) {
       return decrypt(licenseKey);
 }
-
-
-
-/*var getTrueData=function(str){
-  //var bearerToken=decrypt(str);
- // console.log(bearerToken);
-   jwt.verify(str, key, function(err, decoded) {
-        if(err){return next(err);}
-        console.log(decoded);
-        
-        })
-
-}*/
-/*var licenseJson={};
-         licenseJson.startDate="2016-01-01";
-         licenseJson.endDate="2016-07-31";
-         licenseJson.merchantId="M00012123";
-//26=24+8
-//15=13
-console.log(Math.random().toString(36).substr(10));
-
-console.log(Math.random().toString(16).substr(2)+Math.random().toString(16).substr(2)+Math.random().toString(16).substr(8));
-var licenseStr=encrypt(JSON.stringify(licenseJson));
-console.log(licenseStr);
-console.log(decrypt(licenseStr));*/
-
-//console.log(Math.random().toString(36).slice(2));
-
-
-/*
-docker run -it --volumes-from=data  --link mongo:mongo -e APPPATH="jaynode" --rm jianyeruan/node /run.sh node modules/createSuper.js
-*/

@@ -1,8 +1,10 @@
-var mongoose = require('mongoose'),Schema = mongoose.Schema;
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    tools = require('../modules/tools');
 
 var billsSchema = new Schema({
+merchantId:{type:String,lowercase: true, trim: true},
 orderNo:String,
-merchantId:String,
 subTotal:Number,
 taxRate:Number,
 tax:Number,
@@ -10,13 +12,15 @@ tipRate:Number,
 tip:Number,
 discountRate:Number,
 discount:Number,
+charge:Number,
+chargeRate:Number,
 grandTotal:Number,
-   type:{type:String,default:"cash"},
-   receiveTotal:Number,
-   change:Number,
-createdAt: {type:Date,default:Date.now},
+type:{type:String,default:"Cash"},
+receiveTotal:Number,
+change:Number,
+createdAt: {type:Date,default:tools.defaultDate},
 updatedAt: Date,
-status:String, //paid,void
+status:{type:String,default:"Paid"}, //paid,void
 operator:{
 	id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
 	user:String
@@ -25,28 +29,7 @@ customer:{
 	id:{type: mongoose.Schema.Types.ObjectId, ref: 'customers' },
 	user:String
 },
-order:{type: mongoose.Schema.Types.ObjectId, ref: 'order'}
+order:{type: mongoose.Schema.Types.ObjectId, ref: 'orders'}
 });
 
 module.exports = mongoose.model('bills', billsSchema);
-
-/*orderNo:String,
-merchantId:String,
-
-subTotal:Number,
-
-taxRate:Number,
-tax:Number,
-
-tip:Number,
-tipTotal:Number,
-orderDetails:[orderDetailsSchema],
-
-discountRate:Number,//-
-discount:Number,//-
-
-grandTotal:Number,
-
-status:{type:String,default:"unpaid"},//uppaid,paid,close
-createdAt: {type:Date,default:Date.now},
-updatedAt: Date,*/

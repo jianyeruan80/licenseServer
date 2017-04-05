@@ -1,30 +1,36 @@
-var mongoose = require('mongoose'),Schema = mongoose.Schema;
-
-
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    tools = require('../modules/tools');
 var orderDetailsSchema = new Schema({
-
+merchantId:{type:String,lowercase: true, trim: true},
 category:String,
 price:Number,
 qty:Number,
 name:String,
+charge:Number,
+chargeRate:Number,
 currentPrice:Number,//-
 discount:Number,//-
-discountRate:Number,//-
+discountRate:Number,
 qty:Number,
-options:[],
+options:[{"name":String,price:Number,order:Number}],
 properties:[],
 item:{type: mongoose.Schema.Types.ObjectId, ref: 'items' }
 });
 
 var ordersSchema = new Schema({
 orderNo:String,
-merchantId:String,
-
+invoiceNo:{type:String, index: true, required: true},
+notes:String,
+pickUpTime:{type:Date,index:true},
+timer:Date,
+merchantId:{type:String,lowercase: true, trim: true},
 subTotal:Number,
-
+charge:Number,
+chargeRate:Number,
 taxRate:Number,
 tax:Number,
-
+orderType:{type:String,default:"Laundry"},
 tip:Number,
 tipTotal:Number,
 orderDetails:[orderDetailsSchema],
@@ -33,9 +39,10 @@ discountRate:Number,//-
 discount:Number,//-
 
 grandTotal:Number,
-
-status:{type:String,default:"unpaid"},//uppaid,paid,close
-createdAt: {type:Date,default:Date.now},
+unpaid:Number,
+reason:String,
+status:{type:String,default:"Unpaid",index:true},//uppaid,paid,close
+createdAt: {type:Date,default:tools.defaultDate,index:true},
 updatedAt: Date,
 createdBy:{
 	id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },

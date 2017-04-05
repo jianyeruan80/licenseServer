@@ -9,21 +9,13 @@ var addressSchema = new Schema({
       description:String
 });
 var licensesSchema = new mongoose.Schema({ 
-    storeName:String,
-    contact:String,
-    email:String,
-    phone:String,
     key:String,
     activeKey:String,
-    merchantId:String,
     pcKey:String,
     month:Number,
     createdAt:Date,
     delay:{type:Number,default:7},
-    operator:{
-     id:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
-     user:String
-    },
+    operator:{type: mongoose.Schema.Types.ObjectId, ref: 'users' },
     startDate:Date,
     expires:Date,
     type:{type: String, enum: ['Normal', 'Trial'],default:'Normal'},
@@ -32,7 +24,6 @@ var licensesSchema = new mongoose.Schema({
 })
 var licensesSchema = new mongoose.Schema({ 
     licenseKey:[licensesSchema],
-    newKey:String,
     merchantId:String,
     email:String,
     phone:String,
@@ -40,8 +31,7 @@ var licensesSchema = new mongoose.Schema({
     storeName:String,
     addressInfo:addressSchema,
     description:String,
-
  });
 
-licensesSchema.index({merchantId:1}, { unique: true,sparse:true});
+licensesSchema.index({merchantId:1,storeName:1 }, { unique: true,sparse:true});
 module.exports = mongoose.model('licenses', licensesSchema);

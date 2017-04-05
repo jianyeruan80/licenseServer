@@ -5,7 +5,7 @@ var lauguagesSchema = new Schema({
 	"third":String
 })
 var taxsSchema = new Schema({
-	  merchantId:{type:String,uppercase: true, trim: true},
+	   merchantId:{type:String,lowercase: true, trim: true},
       name:{type:String,uppercase: true},
       taxRate:Number,
       description:String,

@@ -48,7 +48,7 @@
               </div>
               <div class="flex-container" ng-repeat-end>
                   
-                  <div  ng-class="{'flex-item':true,'statusDisable':!obj.status,'special':obj.merchantIds.length>0}" ng-repeat="obj in item.perms | orderBy:['subject','perm'] " data-perm="{{obj.value}}"    ng-click="getPerm($event)" title="{{obj.merchantIds}}">
+                  <div  ng-class="{'flex-item':true,'statusDisable':!obj.status,'special':obj.merchantIds.length>0}" ng-repeat="obj in item.perms | orderBy:['perm'] " data-perm="{{obj.value}}"    ng-click="getPerm($event)" title="{{obj.merchantIds}}">
                    
                    <label class="admin--label" style="margin-top:-10px;" ng-click="stop($event)">
                      <input   class="admin--radio" type="checkbox" ng-model="obj.key" 
