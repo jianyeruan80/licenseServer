@@ -373,6 +373,7 @@ router.post('/users', security.ensureAuthorized,function(req, res, next) {
 var info=req.body;
 info.createdAt=tools.defaultDate(req.token.zoneInfo);
 info.updatedAt=tools.defaultDate(req.token.zoneInfo);
+info.password=security.encrypt(md5(info.password));
 info.merchantId=req.token.merchantId;
 var options = {new: true};
 info.operator={};
@@ -394,7 +395,11 @@ var options = {new: true};
 info.operator={};
 info.operator.id=req.token.id;
 info.operator.user=req.token.user;
-
+if(info.password.length<16){
+  info.password=security.encrypt(md5(info.password));  
+}else{
+  delete info.password;
+}
 if(!info.status){info.status=new Date().getTime();};
 
 users.findByIdAndUpdate(req.params.id,info,options,function (err, data) {

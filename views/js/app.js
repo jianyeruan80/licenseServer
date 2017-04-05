@@ -1,7 +1,7 @@
 
 angular.module('server', ['ionic', 'server.services','server.controllers'])
-//.constant('CONFIG', {'url':'http://192.168.1.100:3100/superadmin/','info':{},'header':{}})
-.constant('CONFIG', {'url':'http://192.155.89.91:3100/superadmin/','info':{},'header':{}})
+.constant('CONFIG', {'url':'http://192.168.1.100:3100/superadmin/','info':{},'header':{}})
+//.constant('CONFIG', {'url':'http://192.155.89.91:3100/superadmin/','info':{},'header':{}})
 .run(function($ionicPlatform,$rootScope,CONFIG,$location) {
     $rootScope.$on('$locationChangeStart', function() {
             //console.log("$locationChangeStart", arguments);

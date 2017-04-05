@@ -71,7 +71,7 @@ var storesSchema = new mongoose.Schema({
 
 },
 });
-storesSchema.index({qrcUrl:1},{unique: true,sparse:true });
+//storesSchema.index({qrcUrl:1},{unique: true,sparse:true });
 storesSchema.index({merchantId:1},{unique: true,sparse:true });
 module.exports = mongoose.model('stores', storesSchema);
 

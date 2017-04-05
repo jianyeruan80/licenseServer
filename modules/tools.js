@@ -2,7 +2,7 @@ var seqs = require('../models/seqs');
 var merchants = require('../models/merchants');
 var fs = require('fs');
 var path = require('path');
-var S3FS = require('s3fs');
+/*var S3FS = require('s3fs');*/
 var options={
   
 }
